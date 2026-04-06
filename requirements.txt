@@ -1,0 +1,14 @@
+# Core runtime
+flask
+python-dotenv
+
+# LLMs / Langchain stack
+langchain
+openai
+
+# Vector DB (Pinecone)
+pinecone-client
+
+# Notebooks / experiments
+jupyter
+
