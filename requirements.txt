@@ -1,14 +1,9 @@
-# Core runtime
-flask
-python-dotenv
-
-# LLMs / Langchain stack
-langchain
-openai
-
-# Vector DB (Pinecone)
-pinecone-client
-
-# Notebooks / experiments
-jupyter
-
+langchain==0.3.26
+flask==2.3.3
+sentence-transformers==2.2.2
+pypdf==4.2.0
+python-dotenv==1.0.1
+langchain-pinecone==0.0.1
+langchain-openai==0.3.24
+langchain-community==0.3.26
+-e C:/Users/LENOVO/jupyter/MediBot/Build-a-Complete-Medical-Chatbot-with-LLMs-LangChain-Pinecone-Flask-AWS
