@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MediBot</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background:#0b1220; color:#e8eefc; }
+      .wrap { max-width: 920px; margin: 0 auto; padding: 28px 16px; }
+      .card { background:#111a2e; border:1px solid #223055; border-radius: 14px; padding: 16px; }
+      h1 { margin: 0 0 8px; font-size: 22px; }
+      .sub { opacity: .85; margin: 0 0 14px; line-height: 1.35; }
+      .chat { display:flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+      .msg { padding: 10px 12px; border-radius: 12px; line-height: 1.35; white-space: pre-wrap; }
+      .me { background:#1b2a4b; border:1px solid #2b4173; align-self: flex-end; }
+      .bot { background:#101b33; border:1px solid #24345f; }
+      .row { display:flex; gap: 10px; margin-top: 14px; }
+      input { flex:1; padding: 12px 12px; border-radius: 12px; border:1px solid #2b4173; background:#0c1429; color:#e8eefc; }
+      button { padding: 12px 14px; border-radius: 12px; border:1px solid #2b4173; background:#2a61ff; color:#fff; cursor:pointer; }
+      button:disabled { opacity:.6; cursor:not-allowed; }
+      .sources { margin-top: 10px; font-size: 12px; opacity: .85; }
+      .pill { display:inline-block; margin: 4px 6px 0 0; padding: 4px 8px; border-radius: 999px; background:#162247; border:1px solid #24345f; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>MediBot</h1>
+        <p class="sub">
+          Educational medical Q&A with retrieval from your PDF. Not medical advice.
+          For emergencies, contact local emergency services.
+        </p>
+
+        <div id="chat" class="chat"></div>
+
+        <div class="row">
+          <input id="input" placeholder="Ask a medical question…" autocomplete="off" />
+          <button id="send">Send</button>
+        </div>
+
+        <div id="sources" class="sources"></div>
+      </div>
+    </div>
+
+    <script>
+      const chat = document.getElementById('chat');
+      const input = document.getElementById('input');
+      const send = document.getElementById('send');
+      const sources = document.getElementById('sources');
+
+      function addMsg(text, who) {
+        const div = document.createElement('div');
+        div.className = 'msg ' + who;
+        div.textContent = text;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      function setSources(list) {
+        sources.innerHTML = '';
+        if (!list || !list.length) return;
+        const label = document.createElement('div');
+        label.textContent = 'Sources:';
+        sources.appendChild(label);
+        list.slice(0, 6).forEach(s => {
+          const pill = document.createElement('span');
+          pill.className = 'pill';
+          pill.textContent = `${s.source || 'unknown'} p.${s.page ?? '?'}`;
+          sources.appendChild(pill);
+        });
+      }
+
+      async function doSend() {
+        const msg = input.value.trim();
+        if (!msg) return;
+        input.value = '';
+        setSources([]);
+        addMsg(msg, 'me');
+        send.disabled = true;
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({message: msg})
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Request failed');
+          addMsg(data.answer || '(no answer)', 'bot');
+          setSources(data.sources || []);
+        } catch (e) {
+          addMsg('Error: ' + e.message, 'bot');
+        } finally {
+          send.disabled = false;
+          input.focus();
+        }
+      }
+
+      send.addEventListener('click', doSend);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') doSend();
+      });
+
+      addMsg('Hi! Ask me a medical question. I will answer using your PDF when possible.', 'bot');
+    </script>
+  </body>
+</html>
+
